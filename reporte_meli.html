@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS Vinos — Auditoría MeLi</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --green: #22c55e;
+    --accent: #c084fc;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+  header {
+    padding: 2.5rem 2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+  header h1 span { color: var(--accent); }
+  header .ts { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); }
+
+  .summary {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+    padding: 1.5rem 2rem;
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem 1.5rem;
+    display: flex; flex-direction: column; gap: 0.3rem;
+  }
+  .stat .num { font-size: 2rem; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .stat .lbl { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .filters {
+    padding: 0 2rem 1rem;
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+  }
+  .filter-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); padding: 0.45rem 1rem; border-radius: 999px;
+    cursor: pointer; font-size: 0.82rem; font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent); }
+
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 1rem; padding: 0 2rem 3rem;
+  }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.25rem;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #2e2e42; }
+  .card[data-level="bad"]    { border-left: 3px solid var(--red); }
+  .card[data-level="normal"] { border-left: 3px solid var(--yellow); }
+  .card[data-level="good"]   { border-left: 3px solid var(--green); }
+
+  .card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.75rem;
+  }
+  .badge {
+    font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.75rem;
+    border-radius: 999px; color: #000;
+  }
+  .item-link {
+    font-size: 0.75rem; color: var(--muted); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .item-link:hover { color: var(--accent); }
+
+  .item-title {
+    font-size: 0.95rem; font-weight: 600; line-height: 1.4;
+    margin-bottom: 0.75rem; color: var(--text);
+  }
+
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    font-size: 0.75rem; color: var(--muted);
+    margin-bottom: 1rem; font-family: 'DM Mono', monospace;
+  }
+  .meta-row span {
+    background: var(--bg); padding: 0.2rem 0.5rem;
+    border-radius: 4px; border: 1px solid var(--border);
+  }
+
+  .issues-list, .tips-list {
+    list-style: none; display: flex; flex-direction: column; gap: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+  .issues-list li { font-size: 0.8rem; padding: 0.35rem 0.6rem; border-radius: 5px; }
+  li.issue { background: rgba(239,68,68,0.08); color: #fca5a5; border-left: 2px solid var(--red); }
+  li.ok    { background: rgba(34,197,94,0.08);  color: #86efac; border-left: 2px solid var(--green); }
+  li.tip   { font-size: 0.78rem; background: rgba(192,132,252,0.07); color: #d8b4fe; border-left: 2px solid var(--accent); padding: 0.35rem 0.6rem; border-radius: 5px; }
+
+  .item-id {
+    font-family: 'DM Mono', monospace; font-size: 0.65rem;
+    color: #334155; margin-top: 0.5rem;
+  }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>NEXUS <span>Vinos</span> — Auditoría MeLi</h1>
+  <span class="ts">Seller ID: 442495851 · Generado: 23/04/2026 11:11</span>
+</header>
+
+<div class="summary">
+  <div class="stat">
+    <span class="num" style="color:var(--red)">0</span>
+    <span class="lbl">Perdiendo</span>
+  </div>
+  <div class="stat">
+    <span class="num" style="color:var(--yellow)">0</span>
+    <span class="lbl">Empatando</span>
+  </div>
+  <div class="stat">
+    <span class="num" style="color:var(--green)">0</span>
+    <span class="lbl">Ganando</span>
+  </div>
+  <div class="stat">
+    <span class="num">28</span>
+    <span class="lbl">Total publicaciones</span>
+  </div>
+</div>
+
+<div class="filters">
+  <button class="filter-btn active" onclick="filter('all',this)">Todas</button>
+  <button class="filter-btn" onclick="filter('bad',this)">❌ Perdiendo</button>
+  <button class="filter-btn" onclick="filter('normal',this)">⚠️ Empatando</button>
+  <button class="filter-btn" onclick="filter('good',this)">✅ Ganando</button>
+  <button class="filter-btn" onclick="filter('without',this)">➖ Sin datos</button>
+</div>
+
+<div class="grid" id="grid">
+  
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3132875840-malbec-altocedro-2020-valle-de-uco-750ml-vino-premium-argent-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Malbec Altocedro 2020 Valle De Uco 750ml Vino Premium Argent</h3>
+          <div class="meta-row">
+            <span>💰 $24,000</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 1</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Stock bajo (1 unidades)</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3132875840 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3131833768-cabernet-franc-renacer-2018-lujan-de-cuyo-750ml-vino-premium-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Cabernet Franc Renacer 2018 Lujan De Cuyo 750ml Vino Premium</h3>
+          <div class="meta-row">
+            <span>💰 $12,500</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 2</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Stock bajo (2 unidades)</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3131833768 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3131174512-cabernet-sauvignon-alfa-crux-2020-valle-de-uco-750ml-vino-pr-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Cabernet Sauvignon Alfa Crux 2020 Valle De Uco 750ml Vino Pr</h3>
+          <div class="meta-row">
+            <span>💰 $12,100</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 7</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3131174512 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3131072978-blend-de-blancas-stone-soil-manos-negras-2020-valle-de-uco-7-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Blend De Blancas Stone Soil Manos Negras 2020 Valle De Uco 7</h3>
+          <div class="meta-row">
+            <span>💰 $13,500</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 6</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3131072978 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3132876122-chardonnay-vina-las-perdices-2020-lujan-de-cuyo-750ml-vino-p-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Chardonnay Viña Las Perdices 2020 Lujan De Cuyo 750ml Vino P</h3>
+          <div class="meta-row">
+            <span>💰 $12,500</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 3</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3132876122 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3131123450-red-blend-renacer-2019-lujan-de-cuyo-750ml-vino-premium-arge-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Red Blend Renacer 2019 Lujan De Cuyo 750ml Vino Premium Arge</h3>
+          <div class="meta-row">
+            <span>💰 $33,400</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 1</span>
+            <span>🖼 1 fotos</span>
+            <span>🚚 Envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Stock bajo (1 unidades)</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3131123450 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3132008162-red-blend-karim-mussi-2021-mendoza-750ml-vino-premium-argent-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Red Blend Karim Mussi 2021 Mendoza 750ml Vino Premium Argent</h3>
+          <div class="meta-row">
+            <span>💰 $19,700</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 4</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3132008162 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3131097752-vino-blanco-el-porvenir-2020-salta-750ml-vino-premium-argent-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Vino Blanco El Porvenir 2020 Salta 750ml Vino Premium Argent</h3>
+          <div class="meta-row">
+            <span>💰 $26,800</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 6</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3131097752 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3131000918-pinot-noir-manos-negras-2019-mendoza-750ml-vino-premium-arge-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Pinot Noir Manos Negras 2019 Mendoza 750ml Vino Premium Arge</h3>
+          <div class="meta-row">
+            <span>💰 $30,100</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 5</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3131000918 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-1730776733-cabernet-sauvignon-altocedro-2020-valle-de-uco-750ml-vino-pr-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Cabernet Sauvignon Altocedro 2020 Valle De Uco 750ml Vino Pr</h3>
+          <div class="meta-row">
+            <span>💰 $26,600</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 5</span>
+            <span>🖼 2 fotos</span>
+            <span>🚚 Envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (2 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA1730776733 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3131944108-espumante-susana-balbo-2020-mendoza-750ml-vino-premium-argen-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Espumante Susana Balbo 2020 Mendoza 750ml Vino Premium Argen</h3>
+          <div class="meta-row">
+            <span>💰 $16,500</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 3</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3131944108 · Cat: MLA417665</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3132008050-semillon-losange-2020-mendoza-750ml-vino-premium-argentina-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Semillon Losange 2020 Mendoza 750ml Vino Premium Argentina</h3>
+          <div class="meta-row">
+            <span>💰 $35,250</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 3</span>
+            <span>🖼 1 fotos</span>
+            <span>🚚 Envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3132008050 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3131026612-red-blend-alandes-2020-mendoza-750ml-vino-premium-argentina-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Red Blend Alandes 2020 Mendoza 750ml Vino Premium Argentina</h3>
+          <div class="meta-row">
+            <span>💰 $25,000</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 5</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3131026612 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-1731107493-vino-crux-cabernet-sauvignon-750ml-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Vino Crux Cabernet Sauvignon 750ml</h3>
+          <div class="meta-row">
+            <span>💰 $12,100</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 7</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Título muy corto</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Optimizá el título: Vino + Varietal + Bodega + Región + ml (ej: 'Vino Tinto Malbec Zuccardi Valle 750ml Mendoza')</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA1731107493 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3131918046-chardonnay-santa-julia-2020-valle-de-uco-750ml-vino-premium-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Chardonnay Santa Julia 2020 Valle De Uco 750ml Vino Premium </h3>
+          <div class="meta-row">
+            <span>💰 $12,350</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 3</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3131918046 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-1730696379-tempranillo-alfa-crux-2019-valle-de-uco-750ml-vino-premium-a-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Tempranillo Alfa Crux 2019 Valle De Uco 750ml Vino Premium A</h3>
+          <div class="meta-row">
+            <span>💰 $20,800</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 2</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Stock bajo (2 unidades)</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA1730696379 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-2611364230-vino-alandes-concrete-tank-750cc-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Vino Alandes Concrete Tank 750cc</h3>
+          <div class="meta-row">
+            <span>💰 $21,000</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 4</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Título muy corto</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Optimizá el título: Vino + Varietal + Bodega + Región + ml (ej: 'Vino Tinto Malbec Zuccardi Valle 750ml Mendoza')</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li></ul>
+          <div class="item-id">ID: MLA2611364230 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-1730865643-cabernet-sauvignon-santa-julia-2020-mendoza-750ml-vino-premi-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Cabernet Sauvignon Santa Julia 2020 Mendoza 750ml Vino Premi</h3>
+          <div class="meta-row">
+            <span>💰 $16,250</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 3</span>
+            <span>🖼 1 fotos</span>
+            <span>🚚 Envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA1730865643 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3130951370-gewurztraminer-alfa-crux-2020-valle-de-uco-750ml-vino-premiu-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Gewurztraminer Alfa Crux 2020 Valle De Uco 750ml Vino Premiu</h3>
+          <div class="meta-row">
+            <span>💰 $23,500</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 5</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3130951370 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3131944088-red-blend-altocedro-2019-valle-de-uco-750ml-vino-premium-arg-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Red Blend Altocedro 2019 Valle De Uco 750ml Vino Premium Arg</h3>
+          <div class="meta-row">
+            <span>💰 $31,500</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 2</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Stock bajo (2 unidades)</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3131944088 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3131808398-cabernet-franc-zuccardi-2020-maipu-750ml-vino-premium-argent-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Cabernet Franc Zuccardi 2020 Maipu 750ml Vino Premium Argent</h3>
+          <div class="meta-row">
+            <span>💰 $22,600</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 6</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3131808398 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3131918094-red-blend-susana-balbo-2019-mendoza-750ml-vino-premium-argen-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Red Blend Susana Balbo 2019 Mendoza 750ml Vino Premium Argen</h3>
+          <div class="meta-row">
+            <span>💰 $31,900</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 4</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3131918094 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-1732474421-vino-pinot-noir-manos-negras-artesano-750cc-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Vino Pinot Noir Manos Negras Artesano 750cc</h3>
+          <div class="meta-row">
+            <span>💰 $30,100</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 5</span>
+            <span>🖼 4 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA1732474421 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-1730750749-pinot-noir-rose-alpataco-2020-patagonia-750ml-vino-premium-a-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Pinot Noir Rose Alpataco 2020 Patagonia 750ml Vino Premium A</h3>
+          <div class="meta-row">
+            <span>💰 $15,200</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 3</span>
+            <span>🖼 2 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (2 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA1730750749 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-1731404079-vino-zuccardi-q-cabernet-franc-x-750cc-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Vino Zuccardi Q Cabernet Franc X 750cc</h3>
+          <div class="meta-row">
+            <span>💰 $22,600</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 6</span>
+            <span>🖼 3 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Descripción corta o vacía</li><li class="issue">Título muy corto</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Optimizá el título: Vino + Varietal + Bodega + Región + ml (ej: 'Vino Tinto Malbec Zuccardi Valle 750ml Mendoza')</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA1731404079 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3158829124-milamore-bodega-renacer-red-wine-naturally-dried-grapes750ml-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Milamore Bodega Renacer Red Wine Naturally Dried Grapes750ml</h3>
+          <div class="meta-row">
+            <span>💰 $33,400</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 1</span>
+            <span>🖼 3 fotos</span>
+            <span>🚚 Envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Stock bajo (1 unidades)</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3158829124 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-1595842517-las-perdices-reserva-bonarda-1-x-750ml-de-vina-las-perdices-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Las Perdices Reserva Bonarda 1 X 750ml De Viña Las Perdices</h3>
+          <div class="meta-row">
+            <span>💰 $18,900</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 1</span>
+            <span>🖼 2 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (2 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Stock bajo (1 unidades)</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li></ul>
+          <div class="item-id">ID: MLA1595842517 · Cat: MLA1404</div>
+        </div>
+        
+        <div class="card" data-level="without">
+          <div class="card-header">
+            <span class="badge" style="background:#94a3b8">➖ Sin datos</span>
+            <a href="https://articulo.mercadolibre.com.ar/MLA-3136134566-vino-alpataco-rose-de-pinot-noir-shroeder-750ml-local-_JM" target="_blank" class="item-link">Ver en MeLi ↗</a>
+          </div>
+          <h3 class="item-title">Vino Alpataco Rosé De Pinot Noir Shroeder 750ml Local</h3>
+          <div class="meta-row">
+            <span>💰 $15,200</span>
+            <span>👁 0 visitas</span>
+            <span>📦 Stock: 3</span>
+            <span>🖼 1 fotos</span>
+            <span>💸 Sin envío gratis</span>
+          </div>
+          <ul class="issues-list"><li class="issue">Pocas fotos (1 — recomendado: mínimo 6)</li><li class="issue">Descripción corta o vacía</li><li class="issue">Sin visitas registradas</li><li class="issue">Sin envío gratis</li></ul>
+          <ul class="tips-list"><li class="tip">💡 Agregá más fotos de alta calidad: etiqueta, copa servida, bodega</li><li class="tip">💡 Escribí una descripción completa: varietal, añada, maridaje, bodega, notas de cata</li><li class="tip">💡 Activá Product Ads aunque sea con $200/día para generar tráfico inicial</li><li class="tip">💡 El envío gratis mejora drásticamente el CTR — evaluá absorber el costo en el precio</li><li class="tip">💡 Agregá garantía del vendedor (aunque sea 'Satisfacción garantizada')</li></ul>
+          <div class="item-id">ID: MLA3136134566 · Cat: MLA1404</div>
+        </div>
+        
+</div>
+
+<script>
+function filter(level, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.card').forEach(card => {
+    if (level === 'all' || card.dataset.level === level) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+}
+</script>
+</body>
+</html>
