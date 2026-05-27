@@ -1,6 +1,6 @@
 # 🍷 NEXUS Vinos: Automatización y Data Analytics en E-commerce
 
-¡Hola! Bienvenido/a a este proyecto. [cite_start]👋 Este desarrollo nació directamente de una necesidad real como emprendedora: **optimizar, escalar y controlar mi propia tienda online de vinos premium en Mercado Libre Argentina**[cite: 5]. 
+¡Hola! Bienvenido/a a este proyecto.👋 Este desarrollo nació directamente de una necesidad real como emprendedora: **optimizar, escalar y controlar mi propia tienda online de vinos premium en Mercado Libre Argentina**. 
 
 Llevar un negocio adelante implica tomar decisiones rápidas, por lo que mi objetivo principal fue **maximizar el tiempo y simplificar la operativa al extremo**. Quería pasar del trabajo manual propenso a errores a un sistema inteligente, **fácilmente modificable en cualquier momento a lo largo del tiempo**. Por eso, diseñé un flujo donde todo nace desde una carga limpia y organizada de datos en Excel hasta una estructura milimétrica de carpetas locales para el correcto etiquetado y subida masiva de fotos. ¡Acá te cuento cómo transformé la gestión de mi negocio con **Python**! 🚀
 
@@ -33,7 +33,7 @@ Para mantener márgenes saludables y reaccionar rápido a las fluctuaciones del 
 
 ## 🧰 Stack Tecnológico Utilizado
 
-* [cite_start]**Lenguaje Principal:** Python 🐍 [cite: 2]
+* **Lenguaje Principal:** Python 🐍
 * **Conectividad:** API de Mercado Libre (Endpoints de Users, Items, Visits, Health, Categories)
 * **Librerías Clave:** `requests` (para el consumo de APIs), `openpyxl` (para la manipulación del catálogo en Excel), `json`, `time` y `webbrowser`.
 * **Visualización:** HTML5 y CSS3 personalizado para el reporte analítico local.
