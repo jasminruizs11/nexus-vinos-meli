@@ -51,7 +51,7 @@ Para mantener márgenes saludables y reaccionar rápido a las fluctuaciones del 
 ### Sincronización en Producción (Mercado Libre)
 Catálogo e inventario impactados correctamente y de manera masiva en la plataforma pública:
 
-![Panel de Control Mercado Libre](docs/panel_meli.png)
+![Panel de Control Mercado Libre](docs/panel_meli.png.png)
 
 ---
 *Nota de Seguridad: Por cuestiones de privacidad y cumplimiento de políticas de seguridad, las credenciales reales (`.env`) y los tokens de acceso (`.token_cache.json`) se encuentran estrictamente ocultos mediante `.gitignore`.*
