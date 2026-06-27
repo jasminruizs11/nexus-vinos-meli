@@ -237,4 +237,3 @@ Por cuestiones de privacidad y cumplimiento de políticas de seguridad:
 
 ---
 
-*Proyecto desarrollado por Jasmin Ruiz como parte de NEXUS Vinos, una operación real de e-commerce en Mercado Libre Argentina.*
