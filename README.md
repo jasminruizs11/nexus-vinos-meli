@@ -16,16 +16,14 @@ nexus-vinos-meli/
 ├── analizar_precios.py           # Script 4: inteligencia de precios (bloqueado por API, ver sección 4️⃣)
 ├── buscar_categoria.py           # Script utilitario: explora atributos de una categoría
 ├── catalogo_vinos_meli.xlsx      # Catálogo de vinos (fuente de datos del negocio)
-├── requirements.txt              # Dependencias del proyecto (nuevo, agregar al repo)
-├── .env.example                  # Plantilla de variables de entorno (nuevo, agregar al repo)
+├── requirements.txt              # Dependencias del proyecto
+├── .env.example                  # Plantilla de variables de entorno (sin credenciales reales)
 ├── .gitignore                    # Excluye .env, .token_cache.json y archivos temporales
 │
 ├── reporte_meli.json             # Salida de auditor_meli.py (datos estructurados)
 ├── reporte_meli.html             # Salida de auditor_meli.py (dashboard visual)
 ├── resultados_carga.json         # Salida de carga_vinos_meli.py (log de publicaciones creadas)
 ├── analisis_precios.json         # Salida vacía de analizar_precios.py (bloqueado por API)
-│
-├── documentos/                   # Capturas y material de apoyo del proyecto
 │
 ├── vinos/                        # Carpeta local de fotos (no versionada)
 │   ├── altocedro_malbec_ano_cero/
@@ -39,6 +37,7 @@ nexus-vinos-meli/
 > 📌 La carpeta `vinos/` con las fotos **no se sube al repositorio** (son archivos de imagen pesados y de uso particular del negocio). Si querés probar el script de carga, creá tus propias subcarpetas siguiendo la convención de nombres que se explica en el paso 5.
 
 > 📌 Los archivos `reporte_meli.*`, `resultados_carga.json` y `analisis_precios.json` son **salidas generadas por los scripts**, no archivos de entrada. Se incluyen en el repositorio a modo de evidencia de ejecuciones reales, pero se regeneran cada vez que corrés el script correspondiente.
+
 ---
 
 ## 🛠️ ¿Qué hace este proyecto? (Paso a Paso)
@@ -219,9 +218,9 @@ python analizar_precios.py
 
 ## 📸 Visualización y Resultados
 
-> 🚧 Esta sección incluirá próximamente una captura del panel de Mercado Libre con el catálogo sincronizado en producción. Cuando tengas la imagen, guardala en `documentos/panel_meli.png` y agregá aquí:
+> 🚧 Esta sección incluirá próximamente una captura del panel de Mercado Libre con el catálogo sincronizado en producción. Cuando tengas la imagen, subila al repositorio (por ejemplo en una carpeta `imagenes/`) y agregá aquí:
 >
-> `![Panel de Control Mercado Libre](documentos/panel_meli.png)`
+> `![Panel de Control Mercado Libre](ruta/a/tu/imagen.png)`
 
 ---
 
@@ -246,3 +245,4 @@ Por cuestiones de privacidad y cumplimiento de políticas de seguridad:
 
 ---
 
+*Proyecto desarrollado por Jasmin Ruiz como parte de NEXUS Vinos, una operación real de e-commerce en Mercado Libre Argentina.*
