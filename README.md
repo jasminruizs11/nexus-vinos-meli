@@ -216,14 +216,6 @@ python analizar_precios.py
 
 ---
 
-## 📸 Visualización y Resultados
-
-> 🚧 Esta sección incluirá próximamente una captura del panel de Mercado Libre con el catálogo sincronizado en producción. Cuando tengas la imagen, subila al repositorio (por ejemplo en una carpeta `imagenes/`) y agregá aquí:
->
-> `![Panel de Control Mercado Libre](ruta/a/tu/imagen.png)`
-
----
-
 ## 🔐 Nota de Seguridad
 
 Por cuestiones de privacidad y cumplimiento de políticas de seguridad:
